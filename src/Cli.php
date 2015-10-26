@@ -5,14 +5,14 @@ namespace SimpleHelpers;
 class Cli
 {
     const COLOR_RED = 'Red';
-    const COLOR_RED_BOLD = 'Red';
-    const COLOR_RED_DIM = 'Red';
-    const COLOR_GREEN = 'Red';
-    const COLOR_GREEN_BOLD = 'Red';
-    const COLOR_GREEN_DIM = 'Red';
-    const COLOR_YELLOW = 'Red';
-    const COLOR_YELLOW_BOLD = 'Red';
-    const COLOR_YELLOW_DIM = 'Red';
+    const COLOR_RED_BOLD = 'RedBold';
+    const COLOR_RED_DIM = 'RedDim';
+    const COLOR_GREEN = 'Green';
+    const COLOR_GREEN_BOLD = 'GreenBold';
+    const COLOR_GREEN_DIM = 'GreenDim';
+    const COLOR_YELLOW = 'Yellow';
+    const COLOR_YELLOW_BOLD = 'YellowBold';
+    const COLOR_YELLOW_DIM = 'YellowDim';
 
     /**
      * @param string $text
