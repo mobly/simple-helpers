@@ -1,0 +1,24 @@
+{
+    "name": "mobly/simple-helpers",
+    "description": "Set of helpers",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Caio Costa",
+            "email": "github@bycosta.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "require-dev": {
+        "ext-curl": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "SimpleHelpers\\": "src/"
+        }
+    }
+}
