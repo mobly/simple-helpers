@@ -4,16 +4,23 @@ namespace SimpleHelpers;
 
 class Rest
 {
+    const HTTP_METHOD_GET = 'GET';
+    const HTTP_METHOD_POST = 'POST';
+
     /**
-     * @param string $method
      * @param string $url
      * @param string $parameterList
+     * @param string $method
      * @param array $headerList
      *
      * @return \stdClass
      */
-    static public function json($method, $url, $parameterList = '', array $headerList = [])
-    {
+    static public function json(
+        $url,
+        $parameterList = '',
+        $method = self::HTTP_METHOD_GET,
+        array $headerList = []
+    ) {
         $curl = curl_init();
 
         $headerList[] = 'Content-Type: application/json;charset=UTF-8';
@@ -73,9 +80,9 @@ class Rest
     static public function jiraGet($url, $user, array $parameterList = [])
     {
         return self::json(
-            'GET',
             $url,
             $parameterList,
+            self::HTTP_METHOD_GET,
             [
                 'Authorization: Basic ' . $user
             ]
