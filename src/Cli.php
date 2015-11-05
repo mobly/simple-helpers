@@ -77,17 +77,22 @@ class Cli
      * @param string $prompt
      * @param array $validInputs
      * @param string $default
+     * @param boolean $hideInput
      *
      * @return string
      */
-    static public function readInput($prompt = '', array $validInputs = [], $default = '')
+    static public function readInput($prompt = '', array $validInputs = [], $default = '', $hideInput = false)
     {
         while (!isset($input) || (!empty($validInputs) && !in_array($input, $validInputs))) {
             if (!empty($prompt)) {
                 echo $prompt;
             }
 
+            $hideInput && system('stty -echo');
+
             $input = trim(fgets(STDIN));
+
+            $hideInput && system('stty echo');
 
             if (empty($input) && !empty($default)) {
                 $input = $default;
