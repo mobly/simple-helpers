@@ -4,6 +4,9 @@ namespace SimpleHelpers;
 
 class Cli
 {
+    const COLOR_WHITE = 'White';
+    const COLOR_WHITE_BOLD = 'WhiteBold';
+    const COLOR_WHITE_DIM = 'WhiteDim';
     const COLOR_RED = 'Red';
     const COLOR_RED_BOLD = 'RedBold';
     const COLOR_RED_DIM = 'RedDim';
@@ -23,6 +26,15 @@ class Cli
     static public function writeOutput($text, $color = '')
     {
         switch ($color) {
+            case self::COLOR_WHITE:
+                $out = "[0m";
+                break;
+            case self::COLOR_WHITE_BOLD:
+                $out = "[1m";
+                break;
+            case self::COLOR_WHITE_DIM:
+                $out = "[2m";
+                break;
             case self::COLOR_RED:
                 $out = "[0;31m";
                 break;
