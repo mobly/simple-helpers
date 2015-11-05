@@ -80,12 +80,14 @@ class Cli
      *
      * @return string
      */
-    static public function readInput($prompt, array $validInputs = [], $default = '')
+    static public function readInput($prompt = '', array $validInputs = [], $default = '')
     {
         while (!isset($input) || (!empty($validInputs) && !in_array($input, $validInputs))) {
-            echo $prompt;
+            if (!empty($prompt)) {
+                echo $prompt;
+            }
 
-            $input = strtolower(trim(fgets(STDIN)));
+            $input = trim(fgets(STDIN));
 
             if (empty($input) && !empty($default)) {
                 $input = $default;
