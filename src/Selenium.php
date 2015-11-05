@@ -1,5 +1,7 @@
 <?php
 
+namespace SimpleHelpers;
+
 class Selenium extends PHPUnit_Extensions_Selenium2TestCase
 {
     const BY_CSS_SELECTOR = 'byCssSelector';
