@@ -39,14 +39,14 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param boolean $displayed
      * @param integer $timeout
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function waitUntilStatus($by, $value, $displayed = true, $timeout = 0)
     {
         try {
-            /** @var PHPUnit_Extensions_Selenium2TestCase_Element $element */
+            /** @var \PHPUnit_Extensions_Selenium2TestCase_Element $element */
             return $this->waitUntil(function() use ($by, $value, $displayed) {
-                /** @var PHPUnit_Extensions_Selenium2TestCase_Element $element */
+                /** @var \PHPUnit_Extensions_Selenium2TestCase_Element $element */
                 $element = $this->$by($value);
 
                 if ($displayed) {
@@ -69,7 +69,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param string $by
      * @param string $value
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function waitUntilHide($by, $value)
     {
@@ -81,7 +81,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param string $value
      * @param integer $timeout
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function waitUntilShow($by, $value, $timeout = 0)
     {
@@ -91,9 +91,9 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
     /**
      * @param string$value
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
-    public function HiddenElementByCSS($value)
+    public function getHiddenElementByCSS($value)
     {
         return $this->waitUntilHide(self::BY_CSS_SELECTOR, $value);
     }
@@ -101,9 +101,9 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
     /**
      * @param string $value
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
-    public function HiddenElementById($value)
+    public function getHiddenElementById($value)
     {
         return $this->waitUntilHide(self::BY_ID, $value);
     }
@@ -113,7 +113,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param string $value
      * @param integer $timeout
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function clickDisplayedElement($by, $value, $timeout = 0)
     {
@@ -121,7 +121,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
 
         if (null !== $element) {
             $this->moveto($element);
-            $this->click(PHPUnit_Extensions_Selenium2TestCase_SessionCommand_Click::LEFT);
+            $this->click(\PHPUnit_Extensions_Selenium2TestCase_SessionCommand_Click::LEFT);
         }
 
         return $element;
@@ -131,7 +131,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param string $value
      * @param integer $timeout
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function clickDisplayedElementByCSS($value, $timeout = 0)
     {
@@ -142,7 +142,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param string $value
      * @param integer $timeout
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function clickDisplayedElementByClass($value, $timeout = 0)
     {
@@ -153,7 +153,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param string $value
      * @param integer $timeout
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function clickDisplayedElementByID($value, $timeout = 0)
     {
@@ -164,7 +164,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param string $value
      * @param integer $timeout
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function clickDisplayedElementByName($value, $timeout = 0)
     {
@@ -175,7 +175,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param string $value
      * @param integer $timeout
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function clickDisplayedElementByTag($value, $timeout = 0)
     {
@@ -186,7 +186,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param string $value
      * @param integer $timeout
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function clickDisplayedElementByLinkText($value, $timeout = 0)
     {
@@ -197,7 +197,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param string $value
      * @param integer $timeout
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function clickDisplayedElementByXPath($value, $timeout = 0)
     {
@@ -209,13 +209,13 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
      * @param string $elementId
      * @param integer $timeout
      *
-     * @return PHPUnit_Extensions_Selenium2TestCase_Element
+     * @return \PHPUnit_Extensions_Selenium2TestCase_Element
      */
     public function selectOptionByValueOfElementById($value, $elementId, $timeout = 0)
     {
         $element = $this->clickDisplayedElementByID($elementId, $timeout);
 
-        PHPUnit_Extensions_Selenium2TestCase_Element_Select::fromElement($element)->selectOptionByValue($value);
+        \PHPUnit_Extensions_Selenium2TestCase_Element_Select::fromElement($element)->selectOptionByValue($value);
 
         return $element;
     }
@@ -234,7 +234,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
                     $this->using($by . ' selector')->value($value)
                 )
             );
-        } catch(Exception $exception) {
+        } catch(\Exception $exception) {
             return 0;
         }
     }
