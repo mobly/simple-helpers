@@ -126,4 +126,31 @@ class Rest
 
         return $issueList;
     }
+
+    /**
+     * @param array $configuration
+     * @param string $key
+     * @param integer $transitionId
+     *
+     * @return \stdClass
+     */
+    static public function jiraPostIssueTransition(array $configuration, $key, $transitionId)
+    {
+        return self::json(
+            $configuration['host']
+                . sprintf(
+                    $configuration['endpoint']['transition'],
+                    $key
+                ),
+            json_encode([
+                'transition' => [
+                    'id' => $transitionId,
+                ],
+            ]),
+            self::HTTP_METHOD_POST,
+            [
+                'Authorization: Basic ' . $configuration['loginHash']
+            ]
+        );
+    }
 }
