@@ -29,6 +29,7 @@ class Rest
      * @param string $parameterList
      * @param string $method
      * @param array $headerList
+     * @param boolean $assoc
      *
      * @return \stdClass
      */
@@ -36,7 +37,8 @@ class Rest
         $url,
         $parameterList = '',
         $method = self::HTTP_METHOD_GET,
-        array $headerList = []
+        array $headerList = [],
+        $assoc = false
     ) {
         $curl = curl_init();
 
@@ -90,7 +92,7 @@ class Rest
             );
         }
 
-        return json_decode($result);
+        return json_decode($result, $assoc);
     }
 
     /**
