@@ -4,8 +4,25 @@ namespace SimpleHelpers;
 
 class Rest
 {
+    /**
+     * string method get
+     */
     const HTTP_METHOD_GET = 'GET';
+
+    /**
+     * string method post
+     */
     const HTTP_METHOD_POST = 'POST';
+
+    /**
+     * string error of curl response
+     */
+    const ERROR_CURL_RESPONSE = 101;
+
+    /**
+     * string error of http return error
+     */
+    const ERROR_CURL_HTTP_CODE = 102;
 
     /**
      * @param string $url
@@ -51,19 +68,25 @@ class Rest
         $error = curl_error($curl);
 
         if ($error) {
-            var_dump(
-                $parameterList,
-                $result,
-                $information,
-                $error
+            self::getException(
+                [
+                    $parameterList,
+                    $result,
+                    $information,
+                    $error
+                ],
+                self::ERROR_CURL_RESPONSE
             );
         }
 
         if (!empty($information['http_code']) && $information['http_code'] >= 400) {
-            var_dump(
-                $parameterList,
-                $result,
-                $information
+            self::getException(
+                [
+                    $parameterList,
+                    $result,
+                    $information
+                ],
+                self::ERROR_CURL_HTTP_CODE
             );
         }
 
@@ -116,7 +139,9 @@ class Rest
             );
 
             if (!isset($json->issues)) {
-                throw new \Exception('Error: ' . var_export($json, true));
+                self::getException(
+                    var_export($json, true)
+                );
             }
 
             foreach ($json->issues as $issue) {
@@ -151,6 +176,20 @@ class Rest
             [
                 'Authorization: Basic ' . $configuration['loginHash']
             ]
+        );
+    }
+
+    /**
+     * @param array $exception
+     * @param int $code
+     *
+     * @throws \Exception
+     */
+    static protected function getException(array $exception, $code = 500)
+    {
+        throw new \Exception(
+            'Curl exception: ' . var_export($exception, true),
+            $code
         );
     }
 }
