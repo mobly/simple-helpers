@@ -55,7 +55,8 @@ class Rest
 
         switch ($method) {
             case 'GET':
-                $url .= '?' . http_build_query((array) $parameterList);
+                $parameterList = (array) $parameterList;
+                $url .= (count($parameterList) > 0) ? '?' . http_build_query($parameterList) : '';
                 break;
             case 'POST':
                 curl_setopt($curl, CURLOPT_POST, true);
