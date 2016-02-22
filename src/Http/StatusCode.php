@@ -5,10 +5,8 @@ namespace SimpleHelpers\Http;
 /**
  * @see http://php.net/manual/pt_BR/function.http-response-code.php#114581
  */
-class StatusCode extends \SplEnum
+class StatusCode
 {
-    const __default = self::OK;
-
     const SWITCHING_PROTOCOLS = 101;
     const OK = 200;
     const CREATED = 201;
