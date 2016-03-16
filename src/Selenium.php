@@ -55,7 +55,7 @@ class Selenium extends \PHPUnit_Extensions_Selenium2TestCase
 
                 return !$element->displayed() ? $element : null;
             }, empty($timeout) ? self::TIMEOUT_ELEMENT : $timeout);
-        } catch (Exception $exception) {
+        } catch (\Exception $exception) {
             $this->fail(
                 $exception->getMessage() . ' | ' .
                 __FUNCTION__ . ' | ' . $by . ' | ' . $value . ' | ' . ($displayed ? 'displayed' : 'hidden')

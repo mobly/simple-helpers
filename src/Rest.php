@@ -2,6 +2,8 @@
 
 namespace SimpleHelpers;
 
+use SimpleHelpers\Http\StatusCode;
+
 class Rest
 {
     /**
@@ -17,7 +19,7 @@ class Rest
     /**
      * string error of curl response
      */
-    const ERROR_CURL_RESPONSE = 101;
+    const ERROR_CURL_CODE = 101;
 
     /**
      * string error of http return error
@@ -25,75 +27,158 @@ class Rest
     const ERROR_CURL_HTTP_CODE = 102;
 
     /**
+     * json parse error
+     */
+    const ERROR_CURL_JSON = 103;
+
+    /**
      * @param string $url
-     * @param string $parameterList
+     * @param string|array $parameterList
      * @param string $method
      * @param array $headerList
-     * @param boolean $assoc
+     * @param boolean $associative
+     * @param array $optionList
+     * @param integer $retries
      *
-     * @return \stdClass
+     * @return array|\stdClass
+     *
+     * @throws \Exception
      */
     static public function json(
         $url,
         $parameterList = '',
         $method = self::HTTP_METHOD_GET,
         array $headerList = [],
-        $assoc = false
+        $associative = false,
+        array $optionList = [],
+        $retries = 5
     ) {
-        $curl = curl_init();
-
         $headerList[] = 'Content-Type: application/json;charset=UTF-8';
 
-        curl_setopt($curl, CURLOPT_HEADER, false);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 600);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $headerList);
+        $defaultOptionList = [
+            CURLOPT_HEADER => false,
+            CURLOPT_HTTPHEADER => $headerList,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_NOSIGNAL => true,
+            CURLOPT_CONNECTTIMEOUT_MS => 30 * 1000,
+            CURLOPT_TIMEOUT_MS => 600 * 1000,
+        ];
 
         switch ($method) {
-            case 'GET':
+            case self::HTTP_METHOD_GET:
                 $parameterList = (array) $parameterList;
-                $url .= (count($parameterList) > 0) ? '?' . http_build_query($parameterList) : '';
+                $parameters = '';
+                foreach ($parameterList as $key => $value) {
+                    if (is_array($value)) {
+                        $parameters .= (empty($parameters) ? '' : '&') . self::normalizeArrayValues($key, $value);
+
+                        unset($parameterList[$key]);
+                    }
+                }
+
+                if (count($parameterList) > 0) {
+                    $parameters .= (empty($parameters) ? '' : '&') . http_build_query($parameterList);
+                }
+
+                if ($parameters) {
+                    $url .= '?' . $parameters;
+                }
                 break;
-            case 'POST':
-                curl_setopt($curl, CURLOPT_POST, true);
-                curl_setopt($curl, CURLOPT_POSTFIELDS, $parameterList);
+            case self::HTTP_METHOD_POST:
+                $optionList[CURLOPT_POST] = true;
+                $optionList[CURLOPT_POSTFIELDS] = $parameterList;
                 break;
         }
 
-        curl_setopt($curl, CURLOPT_URL, $url);
+        $optionList[CURLOPT_URL] = $url;
 
-        $result = curl_exec($curl);
-        $information = curl_getinfo($curl);
-        $error = curl_error($curl);
+        $curl = curl_init();
 
-        if ($error) {
+        curl_setopt_array($curl, $optionList + $defaultOptionList);
+
+        $tries = 0;
+
+        do {
+            $timeStart = microtime(true);
+            $response = curl_exec($curl);
+            $executionTime = microtime(true) - $timeStart;
+            $information = curl_getinfo($curl);
+            $errorCode = curl_errno($curl);
+            $tries++;
+        } while ($errorCode === CURLE_OPERATION_TIMEOUTED && $tries < $retries);
+
+        if ($errorCode) {
             self::getException(
                 [
-                    $parameterList,
-                    $result,
-                    $information,
-                    $error
+                    'errorCode' => $errorCode,
+                    'error' => curl_error($curl),
+                    'executionTime' => $executionTime,
+                    'tries' => $tries,
+                    'optionList' => $optionList,
+                    'response' => $response,
+                    'information' => $information,
                 ],
-                self::ERROR_CURL_RESPONSE
+                self::ERROR_CURL_CODE
             );
         }
 
-        if (!empty($information['http_code']) && $information['http_code'] >= 400) {
+        if (!empty($information['http_code']) && $information['http_code'] >= StatusCode::BAD_REQUEST) {
             self::getException(
                 [
-                    $parameterList,
-                    $result,
-                    $information
+                    'executionTime' => $executionTime,
+                    'tries' => $tries,
+                    'optionList' => $optionList,
+                    'response' => $response,
+                    'information' => $information,
                 ],
                 self::ERROR_CURL_HTTP_CODE
             );
         }
 
-        return json_decode($result, $assoc);
+        $data = json_decode($response, $associative);
+
+        if (false === $data) {
+            self::getException(
+                [
+                    'executionTime' => $executionTime,
+                    'tries' => $tries,
+                    'optionList' => $optionList,
+                    'response' => $response,
+                    'information' => $information,
+                ]
+            );
+        }
+
+        $data['curl'] = [
+            'errorCode' => $errorCode,
+            'error' => curl_error($curl),
+            'executionTime' => $executionTime,
+            'tries' => $tries,
+            'optionList' => $optionList,
+            'information' => $information,
+        ];
+
+        return $data;
+    }
+
+    /**
+     * @param string $key
+     * @param array $valueList
+     *
+     * @return string
+     */
+    static protected function normalizeArrayValues($key, array $valueList)
+    {
+        $normalized = '';
+        $equal = $key . '=';
+        foreach ($valueList as $value) {
+            $normalized .= (empty($normalized) ? '' : '&') . $equal . urlencode($value);
+        }
+
+        return $normalized;
     }
 
     /**
@@ -188,7 +273,7 @@ class Rest
      *
      * @throws \Exception
      */
-    static protected function getException(array $exception, $code = 500)
+    static protected function getException(array $exception, $code = StatusCode::INTERNAL_SERVER_ERROR)
     {
         throw new \Exception(
             'Curl exception: ' . var_export($exception, true),
