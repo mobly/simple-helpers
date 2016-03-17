@@ -97,8 +97,9 @@ class Rest
         $curl = curl_init();
 
         curl_setopt_array($curl, $optionList + $defaultOptionList);
-        
+
         $tries = 0;
+        $triesData = [];
 
         do {
             $timeStart = microtime(true);
@@ -106,18 +107,30 @@ class Rest
             $executionTime = microtime(true) - $timeStart;
             $information = curl_getinfo($curl);
             $errorCode = curl_errno($curl);
+            $error = curl_error($curl);
+
+            if ($errorCode) {
+                $triesData[$tries] = [
+                    'errorCode' => $errorCode,
+                    'error' => $error,
+                    'response' => $response,
+                    'information' => $information,
+                ];
+            }
+
             $tries++;
         } while (in_array($errorCode, self::$retryErrorList) && $tries < $retries);
 
         if ($errorCode) {
             throw new CurlErrorException(
-                'Curl error: ' . curl_error($curl),
+                'Curl error: ' . $error,
                 StatusCode::INTERNAL_SERVER_ERROR,
                 [
                     'errorCode' => $errorCode,
-                    'error' => curl_error($curl),
+                    'error' => $error,
                     'executionTime' => $executionTime,
                     'tries' => $tries,
+                    'triesData' => $triesData,
                     'optionList' => $optionList,
                     'response' => $response,
                     'information' => $information,
@@ -132,6 +145,7 @@ class Rest
                 [
                     'executionTime' => $executionTime,
                     'tries' => $tries,
+                    'triesData' => $triesData,
                     'optionList' => $optionList,
                     'response' => $response,
                     'information' => $information,
@@ -140,16 +154,18 @@ class Rest
         }
 
         $data = json_decode($response, $associative);
+        $jsonErrorCode = json_last_error();
 
-        if (false === $data) {
+        if (JSON_ERROR_NONE !== $jsonErrorCode) {
             throw new JsonErrorException(
-                'Json error: (' . json_last_error() . ')' . json_last_error_msg(),
+                'Json error: (' . $jsonErrorCode . ')' . json_last_error_msg(),
                 StatusCode::INTERNAL_SERVER_ERROR,
                 [
                     'errorCode' => json_last_error(),
                     'error' => json_last_error_msg(),
                     'executionTime' => $executionTime,
                     'tries' => $tries,
+                    'triesData' => $triesData,
                     'optionList' => $optionList,
                     'response' => $response,
                     'information' => $information,
@@ -160,6 +176,7 @@ class Rest
         $data['curl'] = [
             'executionTime' => $executionTime,
             'tries' => $tries,
+            'triesData' => $triesData,
             'optionList' => $optionList,
             'information' => $information,
         ];
