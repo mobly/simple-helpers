@@ -3,6 +3,9 @@
 namespace SimpleHelpers;
 
 use SimpleHelpers\Exception\ContextRuntimeException;
+use SimpleHelpers\Exception\Curl\ErrorException as CurlErrorException;
+use SimpleHelpers\Exception\Http\ErrorException as HttpErrorException;
+use SimpleHelpers\Exception\Json\ErrorException as JsonErrorException;
 use SimpleHelpers\Http\StatusCode;
 
 class Rest
@@ -16,21 +19,6 @@ class Rest
      * string method post
      */
     const HTTP_METHOD_POST = 'POST';
-
-    /**
-     * string error of curl response
-     */
-    const ERROR_CURL_CODE = 101;
-
-    /**
-     * string error of http return error
-     */
-    const ERROR_CURL_HTTP_CODE = 102;
-
-    /**
-     * json parse error
-     */
-    const ERROR_CURL_JSON = 103;
 
     /**
      * @var array
@@ -122,7 +110,7 @@ class Rest
         } while (in_array($errorCode, self::$retryErrorList) && $tries < $retries);
 
         if ($errorCode) {
-            throw new ContextRuntimeException(
+            throw new CurlErrorException(
                 'Curl error: ' . curl_error($curl),
                 StatusCode::INTERNAL_SERVER_ERROR,
                 [
@@ -138,7 +126,7 @@ class Rest
         }
 
         if (!empty($information['http_code']) && $information['http_code'] >= StatusCode::BAD_REQUEST) {
-            throw new ContextRuntimeException(
+            throw new HttpErrorException(
                 'Http error: ' . $response,
                 StatusCode::INTERNAL_SERVER_ERROR,
                 [
@@ -154,7 +142,7 @@ class Rest
         $data = json_decode($response, $associative);
 
         if (false === $data) {
-            throw new ContextRuntimeException(
+            throw new JsonErrorException(
                 'Json error: (' . json_last_error() . ')' . json_last_error_msg(),
                 StatusCode::INTERNAL_SERVER_ERROR,
                 [
