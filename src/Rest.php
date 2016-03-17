@@ -2,6 +2,7 @@
 
 namespace SimpleHelpers;
 
+use SimpleHelpers\Exception\ContextRuntimeException;
 use SimpleHelpers\Http\StatusCode;
 
 class Rest
@@ -30,6 +31,16 @@ class Rest
      * json parse error
      */
     const ERROR_CURL_JSON = 103;
+
+    /**
+     * @var array
+     */
+    protected static $retryErrorList = [
+        CURLE_OPERATION_TIMEOUTED,
+        CURLE_COULDNT_RESOLVE_PROXY,
+        CURLE_COULDNT_RESOLVE_HOST,
+        CURLE_COULDNT_CONNECT,
+    ];
 
     /**
      * @param string $url
@@ -98,7 +109,7 @@ class Rest
         $curl = curl_init();
 
         curl_setopt_array($curl, $optionList + $defaultOptionList);
-
+        
         $tries = 0;
 
         do {
@@ -108,10 +119,12 @@ class Rest
             $information = curl_getinfo($curl);
             $errorCode = curl_errno($curl);
             $tries++;
-        } while ($errorCode === CURLE_OPERATION_TIMEOUTED && $tries < $retries);
+        } while (in_array($errorCode, self::$retryErrorList) && $tries < $retries);
 
         if ($errorCode) {
-            self::getException(
+            throw new ContextRuntimeException(
+                'Curl error: ' . curl_error($curl),
+                StatusCode::INTERNAL_SERVER_ERROR,
                 [
                     'errorCode' => $errorCode,
                     'error' => curl_error($curl),
@@ -120,28 +133,14 @@ class Rest
                     'optionList' => $optionList,
                     'response' => $response,
                     'information' => $information,
-                ],
-                self::ERROR_CURL_CODE
+                ]
             );
         }
 
         if (!empty($information['http_code']) && $information['http_code'] >= StatusCode::BAD_REQUEST) {
-            self::getException(
-                [
-                    'executionTime' => $executionTime,
-                    'tries' => $tries,
-                    'optionList' => $optionList,
-                    'response' => $response,
-                    'information' => $information,
-                ],
-                self::ERROR_CURL_HTTP_CODE
-            );
-        }
-
-        $data = json_decode($response, $associative);
-
-        if (false === $data) {
-            self::getException(
+            throw new ContextRuntimeException(
+                'Http error: ' . $response,
+                StatusCode::INTERNAL_SERVER_ERROR,
                 [
                     'executionTime' => $executionTime,
                     'tries' => $tries,
@@ -152,9 +151,25 @@ class Rest
             );
         }
 
+        $data = json_decode($response, $associative);
+
+        if (false === $data) {
+            throw new ContextRuntimeException(
+                'Json error: (' . json_last_error() . ')' . json_last_error_msg(),
+                StatusCode::INTERNAL_SERVER_ERROR,
+                [
+                    'errorCode' => json_last_error(),
+                    'error' => json_last_error_msg(),
+                    'executionTime' => $executionTime,
+                    'tries' => $tries,
+                    'optionList' => $optionList,
+                    'response' => $response,
+                    'information' => $information,
+                ]
+            );
+        }
+
         $data['curl'] = [
-            'errorCode' => $errorCode,
-            'error' => curl_error($curl),
             'executionTime' => $executionTime,
             'tries' => $tries,
             'optionList' => $optionList,
@@ -227,8 +242,10 @@ class Rest
             );
 
             if (!isset($json->issues)) {
-                self::getException(
-                    var_export($json, true)
+                throw new ContextRuntimeException(
+                    'No issues found',
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    ['response' => $json]
                 );
             }
 
@@ -264,20 +281,6 @@ class Rest
             [
                 'Authorization: Basic ' . $configuration['loginHash']
             ]
-        );
-    }
-
-    /**
-     * @param array $exception
-     * @param int $code
-     *
-     * @throws \Exception
-     */
-    static protected function getException(array $exception, $code = StatusCode::INTERNAL_SERVER_ERROR)
-    {
-        throw new \Exception(
-            'Curl exception: ' . var_export($exception, true),
-            $code
         );
     }
 }
