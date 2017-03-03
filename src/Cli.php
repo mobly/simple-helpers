@@ -63,12 +63,12 @@ class Cli
                 $out = "[2;33m";
                 break;
             default:
-                echo String::newLine() . $text;
+                echo UString::newLine() . $text;
 
                 return true;
         }
 
-        echo String::newLine() . chr(27) . $out . $text . chr(27) . "[0m";
+        echo UString::newLine() . chr(27) . $out . $text . chr(27) . "[0m";
 
         return true;
     }

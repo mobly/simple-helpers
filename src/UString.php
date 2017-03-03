@@ -2,7 +2,7 @@
 
 namespace SimpleHelpers;
 
-class String
+class UString
 {
     /**
      * @param integer $quantity
