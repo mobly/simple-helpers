@@ -11,6 +11,11 @@ use SimpleHelpers\Http\StatusCode;
 class Rest
 {
     /**
+     * string Content-Type
+     */
+    const CONTENT_TYPE = 'Content-Type: application/json;charset=UTF-8';
+
+    /**
      * string method get
      */
     const HTTP_METHOD_GET = 'GET';
@@ -52,7 +57,7 @@ class Rest
         array $optionList = [],
         $retries = 5
     ) {
-        $headerList[] = 'Content-Type: application/json;charset=UTF-8';
+        $headerList[] = static::CONTENT_TYPE;
 
         $defaultOptionList = [
             CURLOPT_HEADER => false,
